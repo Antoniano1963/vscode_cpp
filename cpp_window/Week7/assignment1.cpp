@@ -169,7 +169,7 @@ void multi6kernel(Matrix c,Matrix matrix1,Matrix matrix2,int i,int j,int k){
 	float *m2p1 = &(matrix2.matrix[j + 1][0]);
 	float *m2p2 = &(matrix2.matrix[j + 2][0]);
 	float *m2p3 = &(matrix2.matrix[j + 3][0]);
-	for (int p = 0; p < k - 8; p++)
+	for (int p = 0; p < k - 8; p+=8)
 	{
 		a0 = _mm256_load_ps(m1p0 + i);
 		a1 = _mm256_load_ps(m1p1 + i);
