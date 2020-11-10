@@ -3,9 +3,23 @@
 #include <immintrin.h>
 #include <omp.h>
 #include<string>
-//#include<cblas.h>
+#include<cblas.h>
 using namespace std;
 
+struct Matrix {
+	long row_num, column_num;
+	long row_num_true, column_num_true;
+	long step;
+	float **matrix;
+	/*
+public:
+	~Matrix() {
+		for (int i = 0; i < row_num; i++) {
+			delete[] matrix[i];
+		}
+	}
+	*/
+};
 
 bool testNum(string str) {
 	if (str.length() < 1) {
@@ -32,116 +46,168 @@ bool testNum(string str) {
 	return true;
 }
 
-bool testMatrix(string str){
+bool testMatrix(string str) {
 	int test = 0;
 	int i = 0;
 	int length = str.length();
-	if(str.at(0)!='['){
+	if (str.at(0) != '[') {
 		cout << "The expression should begin with [" << endl;
 		return false;
 	}
-	if(test==0){
+	if (test == 0) {
 		i++;
-		if(str.at(i)<='9'&&str.at(i)>='0'&&i<length){
+		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
 			test = 1;
-		}else{
+		}
+		else {
 			cout << "The character [ should be followed with a float" << endl;
 			return false;
 		}
-	}else if(test==1){
+	}
+	else if (test == 1) {
 		string str1 = "";
-		while(((str.at(i)<='9'&&str.at(i)>='0')||str.at(i)=='.')&&i<length){
+		while (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '.' || str.at(i) == '-') && i < length) {
 			str1 += str.at(i);
 			i++;
 		}
-		if(!testNum(str1)){
+		if (!testNum(str1)) {
 			cout << "The type of the float is wrong" << endl;
 			return false;
 		}
-		if(str.at(i)==','){
+		if (str.at(i) == ',') {
 			test = 2;
 		}
-		else if (str.at(i) == ';'){
+		else if (str.at(i) == ';') {
 			test = 3;
-		}else if(str.at(i)==']'){
-			if(i=length-1){
+		}
+		else if (str.at(i) == ']') {
+			if (i = length - 1) {
 				return true;
 			}
 			cout << "The expression should end with ]" << endl;
 			return false;
-		}else{
+		}
+		else {
 			cout << "The expression contain illegal character" << endl;
 			return false;
 		}
-	}else if(test==2){
+	}
+	else if (test == 2) {
 		i++;
-		if(str.at(i)<='9'&&str.at(i)>='0'&&i<length){
+		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
 			test = 1;
-		}else{
+		}
+		else {
 			cout << "The character , should be followed with a float" << endl;
 			return false;
 		}
-	}else if(test==3){
+	}
+	else if (test == 3) {
 		i++;
-		if(str.at(i)<='9'&&str.at(i)>='0'&&i<length){
+		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
 			test = 1;
-		}else{
+		}
+		else {
 			cout << "The character ; should be followed with a float" << endl;
 			return false;
 		}
 	}
 }
-int rowNum(string str){
+
+void showMatrix(Matrix matrix) {
+	for (int i = 0; i < matrix.row_num_true; i++) {
+		for (int j = 0; j < matrix.column_num_true; j++) {
+			cout << matrix.matrix[i][j] << ' ';
+		}
+		cout << endl;
+	}
+}
+
+float getMatrixNum(Matrix matrix, int rowNum, int columnNum) {
+	if (rowNum < matrix.row_num_true&&columnNum < matrix.column_num_true) {
+		return matrix.matrix[rowNum][columnNum];
+	}
+	else {
+		cout << "Out of Bound" << endl;
+		return 0;
+	}
+}
+
+int getrowNum(string str) {
 	int length = str.length();
 	int result = 1;
-	for (int i = 0; i < length;i++){
-		if (str.at(i) == ';'){
+	for (int i = 0; i < length; i++) {
+		if (str.at(i) == ';') {
 			result++;
 		}
 	}
 	return result;
 }
-int testSameLength(string str){
+
+int testSameLength(string str) {
 	int n = 0;
 	int length = str.length();
 	int lengthNum = 0;
-	for (int i = 0; i < length;i++){
-		if (str.at(i) == ';'){
-			if(lengthNum==0){
-				lengthNum = n+1;
+	for (int i = 0; i < length; i++) {
+		if (str.at(i) == ';') {
+			if (lengthNum == 0) {
+				lengthNum = n + 1;
 				n = 0;
-			}else{
-				if(lengthNum!=n+1){
+			}
+			else {
+				if (lengthNum != n + 1) {
 					return -1;
-				}else{
+				}
+				else {
 					n = 0;
 				}
 			}
 		}
-		if(str.at(i)==','){
+		if (str.at(i) == ',') {
 			n++;
 		}
 	}
-	if(lengthNum!=n+1){
+	if (lengthNum != n + 1) {
 		return -1;
 	}
 	return lengthNum;
 }
 
-struct Matrix {
-	long row_num, column_num;
-	long row_num_true, column_num_true;
-	long step;
-	float **matrix;
-	/*
-public:
-	~Matrix() {
-		for (int i = 0; i < row_num; i++) {
-			delete[] matrix[i];
+Matrix soToMatrix(string str) {
+	int rowNum = getrowNum(str);
+	int columnNum = testSameLength(str);
+	float **p = new float *[rowNum];
+	for (int i = 0; i < rowNum; i++) {
+		p[i] = new float[columnNum];
+	}
+	int i = 1;
+	int k = 0;
+	int j = 0;
+	int length = str.length();
+	while (i < length) {
+		string str0 = "";
+		while (str.at(i) != ',' && str.at(i) != ';'&&i < length) {
+			str0 += str.at(i);
+		}
+		p[k][j] = stof(str0);
+		if (str.at(i) == ',') {
+			j++;
+			i++;
+		}
+		else if (str.at(i) == ';') {
+			k++;
+			j = 0;
+			i++;
+		}
+		else {
+			break;
 		}
 	}
-	*/
-};
+	return Matrix{ rowNum, columnNum, rowNum, columnNum, 1, p };
+
+}
+
+
 
 float **creatMatrix(int row_num, int column_num) {
 	float **p = new float *[row_num];
@@ -150,6 +216,7 @@ float **creatMatrix(int row_num, int column_num) {
 	}
 	return p;
 }
+
 Matrix creatMatrixwithMod(int row_num, int column_num) {
 	int row_num_mod, column_num_mod;
 	if (row_num % 8 != 0) {
@@ -189,6 +256,7 @@ float **creatMatrixwithNum(int row_num, int column_num, float num) {
 	}
 	return p;
 }
+
 Matrix creatMatrixwithNumwithMod(int row_num, int column_num, float num) {
 	int row_num_mod, column_num_mod;
 	if (row_num % 8 != 0) {
@@ -269,6 +337,7 @@ void Addmatrix1x4(int k, Matrix matrix1, Matrix matrix2, Matrix &matrix3, int i,
 	matrix3.matrix[i + 2][j] += m3_20;
 	matrix3.matrix[i + 3][j] += m3_30;
 }
+
 void Addmatrix4x4T(int k, Matrix matrix1, Matrix matrix2, Matrix &matrix3, int i, int j) {
 	//使用4一次星计算16个位置的数据
 	register float m3_00, m3_10, m3_20, m3_30, m3_01, m3_11, m3_21, m3_31, m3_02, m3_12, m3_22, m3_32, m3_03, m3_13, m3_23, m3_33;
@@ -296,8 +365,6 @@ void Addmatrix4x4T(int k, Matrix matrix1, Matrix matrix2, Matrix &matrix3, int i
 	float *m2p1 = &(matrix2.matrix[j + 1][0]);
 	float *m2p2 = &(matrix2.matrix[j + 2][0]);
 	float *m2p3 = &(matrix2.matrix[j + 3][0]);
-
-
 	for (int p = 0; p < k; p++) {
 		m3_00 += *m2p0  * *m1p0;
 		m3_10 += *m2p0  * *m1p1;
@@ -595,6 +662,7 @@ Matrix matrixDot3(Matrix matrix1, Matrix matrix2) {
 		return matrix3;
 	}
 }
+
 Matrix matrixDot4(Matrix matrix1, Matrix matrix2) {
 	//进行4*4矩阵操作的函数，由于是行优先储存，所以矩阵2经过了转置
 	int m = matrix1.row_num;
@@ -622,6 +690,7 @@ Matrix matrixDot4(Matrix matrix1, Matrix matrix2) {
 		return matrix3;
 	}
 }
+
 Matrix matrixDot5(Matrix matrix1, Matrix matrix2) {
 	//使用寄存器进行4*4矩阵乘法的第一次尝试
 	int m = matrix1.row_num;
@@ -649,6 +718,7 @@ Matrix matrixDot5(Matrix matrix1, Matrix matrix2) {
 		return matrix3;
 	}
 }
+
 Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 	int m = matrix1.row_num;
 	int n = matrix2.column_num;
@@ -682,80 +752,128 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 	}
 }
 
-
-
 int main() {
-	int n;
-	cin >> n;
-	Matrix matrix0 = { 10000, 10000, 10000,10000,1, creatMatrixwithNum(10000, 10000, 1) };
-	Matrix matrix1 = { 10000, 10000, 10000,10000,2, creatMatrixwithNum(10000, 10000, 2) };
+	while (true) {
+		cout << "input 0 to test the normal matrix Dot, input 1 to test the time cost of two big matrix Dot: ";
+		string str0;
+		cin >> str0;
+		if (str0.length() > 1) {
+			cout << "You input a wrong experssion" << endl;
+		}
+		else {
+			if (str0.at(0) == '0') {
+				cout << "Enter your first Matrix([1,2;3,4]): ";
+				string str1;
+				cin >> str1;
+				cout << "Enter your second Matrix: ";
+				string str2;
+				cin >> str2;
+				if (testMatrix(str1) && testMatrix(str2)) {
+					int num1 = getrowNum(str1);
+					int num2 = getrowNum(str2);
+					if (num1 > 1) {
+						num1 = testSameLength(str1);
+					}
+					if (num2 > 1) {
+						num2 = testSameLength(str2);
+					}
+					if (num1 > 0 && num2 > 0) {
+						Matrix matrix1 = soToMatrix(str1);
+						Matrix matrix2 = soToMatrix(str2);
+						Matrix matrix3 = matrixDot1(matrix1, matrix2);
+					}
+					else {
+
+					}
+
+				}
+				else {
+
+				}
+			}
+			else if (str0.at(0) == '1') {
+				cout << "Enter a number to size your matrix(int)";
+				string num;
+				cin >> num;
+				if (testNum(num)) {
+					int n = stoi(num);
+					cout << "The number n is " << n << endl;
+					Matrix matrix0 = { 10000, 10000, 10000,10000,1, creatMatrixwithNum(10000, 10000, 1) };
+					Matrix matrix1 = { 10000, 10000, 10000,10000,2, creatMatrixwithNum(10000, 10000, 2) };
+
+					Matrix matrix3, matrix4, matrix5, matrix6;
+					matrix3 = creatMatrixwithNumwithMod(n, n, 1);
+					matrix4 = creatMatrixwithNumwithMod(n, n, 2);
+					auto start = std::chrono::steady_clock::now();
+					matrix5 = matrixDot1(matrix3, matrix4);
+					auto end = std::chrono::steady_clock::now();
+					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration(基本乘法) = " << duration << std::endl;
 
 
-	Matrix matrix3, matrix4, matrix5, matrix6;
-	matrix3 = creatMatrixwithNumwithMod(n, n, 1);
-	matrix4 = creatMatrixwithNumwithMod(n, n, 2);
-	auto start = std::chrono::steady_clock::now();
-	matrix5 = matrixDot1(matrix3, matrix4);
-	auto end = std::chrono::steady_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration(基本乘法) = " << duration << std::endl;
+					start = std::chrono::steady_clock::now();
+					matrix5 = matrixDot2(matrix3, matrix4);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration2(i j顺序调换) = " << duration << std::endl;
 
+					start = std::chrono::steady_clock::now();
+					matrix5 = matrixDot3(matrix3, matrix4);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration3(1*4寄存器) = " << duration;
+					std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
 
-	start = std::chrono::steady_clock::now();
-	matrix5 = matrixDot2(matrix3, matrix4);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration2(i j顺序调换) = " << duration << std::endl;
+					start = std::chrono::steady_clock::now();
+					matrix5 = matrixDot4(matrix3, matrix4);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
+					std::cout << matrix5.matrix[0][30] << endl;
+					/*
+						start = std::chrono::steady_clock::now();
+						matrix6 = matrixDot4(matrix0, matrix1);
+						end = std::chrono::steady_clock::now();
+						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						std::cout << ", duration5(4*4寄存器) = " << duration << std::endl;
+						std::cout << matrix6.matrix[0][30]<<endl;
+					
+					start = std::chrono::steady_clock::now();
+					matrix6 = matrixDot5(matrix0, matrix1);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration6(AVX2寄存器) = " << duration << std::endl;
+					std::cout << matrix6.matrix[0][30] << endl;
 
-	start = std::chrono::steady_clock::now();
-	matrix5 = matrixDot3(matrix3, matrix4);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration3(1*4寄存器) = " << duration;
-	std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
+					start = std::chrono::steady_clock::now();
+					matrix6 = matrixDot6(matrix0, matrix1);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration7(AVX2寄存器预热) = " << duration << std::endl;
+					std::cout << matrix6.matrix[0][30] << endl;
+					float *matrix00 = new float[100000000];
+					float *matrix01 = new float[100000000];
+					float *matrix02 = new float[100000000];
+					for (int i = 0; i < 100000000; i++) {
+						matrix00[i] = 1;
+						matrix01[i] = 2;
+					}
+					
+					start = std::chrono::steady_clock::now();
+					cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 10000, 10000, 10000, 1.0, matrix00, 10000, matrix01, 10000, 0.0, matrix02, 10000);
+					end = std::chrono::steady_clock::now();
+					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+					std::cout << ", duration7(openblas库) = " << duration << std::endl;
+					std::cout << matrix02[30] << endl;
+					*/
+					
+				}
+			}
+			else {
+				cout << "You input a wrong number" << endl;
+			}
+		}
 
-	start = std::chrono::steady_clock::now();
-	matrix5 = matrixDot4(matrix3, matrix4);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
-	std::cout << matrix6.matrix[0][30] << endl;
-	/*
-		start = std::chrono::steady_clock::now();
-		matrix6 = matrixDot4(matrix0, matrix1);
-		end = std::chrono::steady_clock::now();
-		duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-		std::cout << ", duration5(4*4寄存器) = " << duration << std::endl;
-		std::cout << matrix6.matrix[0][30]<<endl;
-	*/
-	start = std::chrono::steady_clock::now();
-	matrix6 = matrixDot5(matrix0, matrix1);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration6(AVX2寄存器) = " << duration << std::endl;
-	std::cout << matrix6.matrix[0][30] << endl;
-
-	start = std::chrono::steady_clock::now();
-	matrix6 = matrixDot6(matrix0, matrix1);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration7(AVX2寄存器预热) = " << duration << std::endl;
-	std::cout << matrix6.matrix[0][30] << endl;
-	float *matrix00 = new float[100000000];
-	float *matrix01 = new float[100000000];
-	float *matrix02 = new float[100000000];
-	for (int i = 0; i < 100000000; i++) {
-		matrix00[i] = 1;
-		matrix01[i] = 2;
 	}
-
-/*
-	start = std::chrono::steady_clock::now();
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 10000, 10000, 10000, 1.0, matrix00, 10000, matrix01, 10000, 0.0, matrix02, 10000);
-	end = std::chrono::steady_clock::now();
-	duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-	std::cout << ", duration7(openblas库) = " << duration << std::endl;
-	std::cout << matrix02[30] << endl;
-	*/
 }
 
