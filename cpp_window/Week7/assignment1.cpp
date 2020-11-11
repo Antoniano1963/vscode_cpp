@@ -54,62 +54,64 @@ bool testMatrix(string str) {
 		cout << "The expression should begin with [" << endl;
 		return false;
 	}
-	if (test == 0) {
-		i++;
-		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
-			test = 1;
-		}
-		else {
-			cout << "The character [ should be followed with a float" << endl;
-			return false;
-		}
-	}
-	else if (test == 1) {
-		string str1 = "";
-		while (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '.' || str.at(i) == '-') && i < length) {
-			str1 += str.at(i);
+	while (i < length) {
+		if (test == 0) {
 			i++;
-		}
-		if (!testNum(str1)) {
-			cout << "The type of the float is wrong" << endl;
-			return false;
-		}
-		if (str.at(i) == ',') {
-			test = 2;
-		}
-		else if (str.at(i) == ';') {
-			test = 3;
-		}
-		else if (str.at(i) == ']') {
-			if (i = length - 1) {
-				return true;
+			if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
+				test = 1;
 			}
-			cout << "The expression should end with ]" << endl;
-			return false;
+			else {
+				cout << "The character [ should be followed with a float" << endl;
+				return false;
+			}
 		}
-		else {
-			cout << "The expression contain illegal character" << endl;
-			return false;
+		else if (test == 1) {
+			string str1 = "";
+			while (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '.' || str.at(i) == '-') && i < length) {
+				str1 += str.at(i);
+				i++;
+			}
+			if (!testNum(str1)) {
+				cout << "The type of the float is wrong" << endl;
+				return false;
+			}
+			if (str.at(i) == ',') {
+				test = 2;
+			}
+			else if (str.at(i) == ';') {
+				test = 3;
+			}
+			else if (str.at(i) == ']') {
+				if (i = length - 1) {
+					return true;
+				}
+				cout << "The expression should end with ]" << endl;
+				return false;
+			}
+			else {
+				cout << "The expression contain illegal character" << endl;
+				return false;
+			}
 		}
-	}
-	else if (test == 2) {
-		i++;
-		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
-			test = 1;
+		else if (test == 2) {
+			i++;
+			if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
+				test = 1;
+			}
+			else {
+				cout << "The character , should be followed with a float" << endl;
+				return false;
+			}
 		}
-		else {
-			cout << "The character , should be followed with a float" << endl;
-			return false;
-		}
-	}
-	else if (test == 3) {
-		i++;
-		if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
-			test = 1;
-		}
-		else {
-			cout << "The character ; should be followed with a float" << endl;
-			return false;
+		else if (test == 3) {
+			i++;
+			if (((str.at(i) <= '9'&&str.at(i) >= '0') || str.at(i) == '-') && i < length) {
+				test = 1;
+			}
+			else {
+				cout << "The character ; should be followed with a float" << endl;
+				return false;
+			}
 		}
 	}
 }
@@ -144,38 +146,49 @@ int getrowNum(string str) {
 	return result;
 }
 
-int testSameLength(string str) {
+int testSameLength(string str,int rowNum) {
 	int n = 0;
 	int length = str.length();
 	int lengthNum = 0;
-	for (int i = 0; i < length; i++) {
-		if (str.at(i) == ';') {
-			if (lengthNum == 0) {
-				lengthNum = n + 1;
-				n = 0;
-			}
-			else {
-				if (lengthNum != n + 1) {
-					return -1;
-				}
-				else {
+	if (rowNum > 1) {
+		for (int i = 0; i < length; i++) {
+			if (str.at(i) == ';') {
+				if (lengthNum == 0) {
+					lengthNum = n + 1;
 					n = 0;
 				}
+				else {
+					if (lengthNum != n + 1) {
+						return -1;
+					}
+					else {
+						n = 0;
+					}
+				}
+			}
+			if (str.at(i) == ',') {
+				n++;
 			}
 		}
-		if (str.at(i) == ',') {
-			n++;
+
+		if (lengthNum != n + 1) {
+			return -1;
 		}
 	}
-	if (lengthNum != n + 1) {
-		return -1;
+	else {
+		for (int i = 0; i < length; i++) {
+			if (str.at(i) == ',') {
+				n++;
+			}
+		}
+		lengthNum = n + 1;
 	}
 	return lengthNum;
 }
 
 Matrix soToMatrix(string str) {
 	int rowNum = getrowNum(str);
-	int columnNum = testSameLength(str);
+	int columnNum = testSameLength(str,rowNum);
 	float **p = new float *[rowNum];
 	for (int i = 0; i < rowNum; i++) {
 		p[i] = new float[columnNum];
@@ -186,8 +199,9 @@ Matrix soToMatrix(string str) {
 	int length = str.length();
 	while (i < length) {
 		string str0 = "";
-		while (str.at(i) != ',' && str.at(i) != ';'&&i < length) {
+		while (i < length&&str.at(i) != ',' && str.at(i) != ';'&&str.at(i)!=']') {
 			str0 += str.at(i);
+			i++;
 		}
 		p[k][j] = stof(str0);
 		if (str.at(i) == ',') {
@@ -206,8 +220,6 @@ Matrix soToMatrix(string str) {
 	return Matrix{ rowNum, columnNum, rowNum, columnNum, 1, p };
 
 }
-
-
 
 float **creatMatrix(int row_num, int column_num) {
 	float **p = new float *[row_num];
@@ -432,16 +444,16 @@ void multi6kernel(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k)
 	float *m2p2 = &(matrix2.matrix[j + 2][0]);
 	float *m2p3 = &(matrix2.matrix[j + 3][0]);
 	int p = 0;
-	for (; p < k - 8; p += 8)
+	for (; p < k ; p += 8)
 	{
-		a0 = _mm256_load_ps(m1p0 + i);
-		a1 = _mm256_load_ps(m1p1 + i);
-		a2 = _mm256_load_ps(m1p2 + i);
-		a3 = _mm256_load_ps(m1p3 + i);
-		b0 = _mm256_load_ps(m2p0 + i);
-		b1 = _mm256_load_ps(m2p1 + i);
-		b2 = _mm256_load_ps(m2p2 + i);
-		b3 = _mm256_load_ps(m2p3 + i);
+		a0 = _mm256_load_ps(m1p0 + p);
+		a1 = _mm256_load_ps(m1p1 + p);
+		a2 = _mm256_load_ps(m1p2 + p);
+		a3 = _mm256_load_ps(m1p3 + p);
+		b0 = _mm256_load_ps(m2p0 + p);
+		b1 = _mm256_load_ps(m2p1 + p);
+		b2 = _mm256_load_ps(m2p2 + p);
+		b3 = _mm256_load_ps(m2p3 + p);
 		c00 = _mm256_add_ps(c00, _mm256_mul_ps(a0, b0));
 		c01 = _mm256_add_ps(c01, _mm256_mul_ps(a0, b1));
 		c02 = _mm256_add_ps(c02, _mm256_mul_ps(a0, b2));
@@ -458,24 +470,6 @@ void multi6kernel(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k)
 		c31 = _mm256_add_ps(c31, _mm256_mul_ps(a3, b1));
 		c32 = _mm256_add_ps(c32, _mm256_mul_ps(a3, b2));
 		c33 = _mm256_add_ps(c33, _mm256_mul_ps(a3, b3));
-	}
-	for (int i = p; i < k; i++) {
-		c.matrix[i][j] += matrix1.matrix[i][p] * matrix2.matrix[j][p];
-		c.matrix[i][j + 1] += matrix1.matrix[i][p] * matrix2.matrix[j + 2][p];
-		c.matrix[i][j + 2] += matrix1.matrix[i][p] * matrix2.matrix[j + 3][p];
-		c.matrix[i][j + 3] += matrix1.matrix[i][p] * matrix2.matrix[j + 4][p];
-		c.matrix[i + 1][j] += matrix1.matrix[i + 1][p] * matrix2.matrix[j][p];
-		c.matrix[i + 1][j + 1] += matrix1.matrix[i + 1][p] * matrix2.matrix[j + 1][p];
-		c.matrix[i + 1][j + 2] += matrix1.matrix[i + 1][p] * matrix2.matrix[j + 2][p];
-		c.matrix[i + 1][j + 3] += matrix1.matrix[i + 1][p] * matrix2.matrix[j + 3][p];
-		c.matrix[i + 2][j] += matrix1.matrix[i + 2][p] * matrix2.matrix[j][p];
-		c.matrix[i + 2][j + 1] += matrix1.matrix[i + 2][p] * matrix2.matrix[j + 1][p];
-		c.matrix[i + 2][j + 2] += matrix1.matrix[i + 2][p] * matrix2.matrix[j + 2][p];
-		c.matrix[i + 2][j + 3] += matrix1.matrix[i + 2][p] * matrix2.matrix[j + 3][p];
-		c.matrix[i + 3][j] += matrix1.matrix[i + 3][p] * matrix2.matrix[j][p];
-		c.matrix[i + 3][j + 1] += matrix1.matrix[i + 3][p] * matrix2.matrix[j + 1][p];
-		c.matrix[i + 3][j + 2] += matrix1.matrix[i + 3][p] * matrix2.matrix[j + 2][p];
-		c.matrix[i + 3][j + 3] += matrix1.matrix[i + 3][p] * matrix2.matrix[j + 3][p];
 	}
 	_mm256_store_ps(sum, c00);
 	c.matrix[i][j] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
@@ -538,16 +532,16 @@ void multi6kernel2(Matrix c, Matrix matrix1, float *m2p0, float *m2p1, float *m2
 	float *m1p2 = &(matrix1.matrix[i + 2][0]);
 	float *m1p3 = &(matrix1.matrix[i + 3][0]);
 	int p = 0;
-	for (; p < k - 8; p += 8)
+	for (; p < k ; p += 8)
 	{
-		a0 = _mm256_load_ps(m1p0 + i);
-		a1 = _mm256_load_ps(m1p1 + i);
-		a2 = _mm256_load_ps(m1p2 + i);
-		a3 = _mm256_load_ps(m1p3 + i);
-		b0 = _mm256_load_ps(m2p0 + i);
-		b1 = _mm256_load_ps(m2p1 + i);
-		b2 = _mm256_load_ps(m2p2 + i);
-		b3 = _mm256_load_ps(m2p3 + i);
+		a0 = _mm256_load_ps(m1p0 + p);
+		a1 = _mm256_load_ps(m1p1 + p);
+		a2 = _mm256_load_ps(m1p2 + p);
+		a3 = _mm256_load_ps(m1p3 + p);
+		b0 = _mm256_load_ps(m2p0 + p);
+		b1 = _mm256_load_ps(m2p1 + p);
+		b2 = _mm256_load_ps(m2p2 + p);
+		b3 = _mm256_load_ps(m2p3 + p);
 		c00 = _mm256_add_ps(c00, _mm256_mul_ps(a0, b0));
 		c01 = _mm256_add_ps(c01, _mm256_mul_ps(a0, b1));
 		c02 = _mm256_add_ps(c02, _mm256_mul_ps(a0, b2));
@@ -564,24 +558,6 @@ void multi6kernel2(Matrix c, Matrix matrix1, float *m2p0, float *m2p1, float *m2
 		c31 = _mm256_add_ps(c31, _mm256_mul_ps(a3, b1));
 		c32 = _mm256_add_ps(c32, _mm256_mul_ps(a3, b2));
 		c33 = _mm256_add_ps(c33, _mm256_mul_ps(a3, b3));
-	}
-	for (int i = p; i < k; i++) {
-		c.matrix[i][j] += matrix1.matrix[i][p] * *(m2p0 + p);
-		c.matrix[i][j + 1] += matrix1.matrix[i][p] * *(m2p1 + p);
-		c.matrix[i][j + 2] += matrix1.matrix[i][p] * *(m2p2 + p);
-		c.matrix[i][j + 3] += matrix1.matrix[i][p] * *(m2p3 + p);
-		c.matrix[i + 1][j] += matrix1.matrix[i + 1][p] * *(m2p0 + p);
-		c.matrix[i + 1][j + 1] += matrix1.matrix[i + 1][p] * *(m2p1 + p);
-		c.matrix[i + 1][j + 2] += matrix1.matrix[i + 1][p] * *(m2p2 + p);
-		c.matrix[i + 1][j + 3] += matrix1.matrix[i + 1][p] * *(m2p3 + p);
-		c.matrix[i + 2][j] += matrix1.matrix[i + 2][p] * *(m2p0 + p);
-		c.matrix[i + 2][j + 1] += matrix1.matrix[i + 2][p] * *(m2p1 + p);
-		c.matrix[i + 2][j + 2] += matrix1.matrix[i + 2][p] * *(m2p2 + p);
-		c.matrix[i + 2][j + 3] += matrix1.matrix[i + 2][p] * *(m2p3 + p);
-		c.matrix[i + 3][j] += matrix1.matrix[i + 3][p] * *(m2p0 + p);
-		c.matrix[i + 3][j + 1] += matrix1.matrix[i + 3][p] * *(m2p1 + p);
-		c.matrix[i + 3][j + 2] += matrix1.matrix[i + 3][p] * *(m2p2 + p);
-		c.matrix[i + 3][j + 3] += matrix1.matrix[i + 3][p] * *(m2p3 + p);
 	}
 	_mm256_store_ps(sum, c00);
 	c.matrix[i][j] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
@@ -615,7 +591,58 @@ void multi6kernel2(Matrix c, Matrix matrix1, float *m2p0, float *m2p1, float *m2
 	c.matrix[i + 3][j + 2] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
 	_mm256_store_ps(sum, c33);
 	c.matrix[i + 3][j + 3] = sum[0] + sum[1] + sum[2] + sum[3] + sum[4] + sum[5] + sum[6] + sum[7];
+}
 
+void multi6kernel3(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k) {
+	//使用16个寄存器进行地4*4矩阵乘法运算，matrix是根据行储存的，即同一行数据的地址是连续的.
+	//为了AVX2 8位float寄存器的使用，matrix2经过转置，来使得要被操作的地址是连续的
+	float sum[8] = { 0 };
+	__m256 c00, c01, c02, c03, c04, c05, c06, c07, a0, a1, a2, a3, a4,a5, a6, a7,b1;
+	c00 = _mm256_setzero_ps();
+	c01 = _mm256_setzero_ps();
+	c02 = _mm256_setzero_ps();
+	c03 = _mm256_setzero_ps();
+	c04 = _mm256_setzero_ps();
+	c05 = _mm256_setzero_ps();
+	c06 = _mm256_setzero_ps();
+	c07 = _mm256_setzero_ps();
+	float *m1p0 = &(matrix1.matrix[i][0]);
+	float *m1p1 = &(matrix1.matrix[i + 1][0]);
+	float *m1p2 = &(matrix1.matrix[i + 2][0]);
+	float *m1p3 = &(matrix1.matrix[i + 3][0]);
+	float *m1p4 = &(matrix1.matrix[i+4][0]);
+	float *m1p5 = &(matrix1.matrix[i + 5][0]);
+	float *m1p6 = &(matrix1.matrix[i + 6][0]);
+	float *m1p7 = &(matrix1.matrix[i + 7][0]);
+	int p = 0;
+	for (; p < k; p ++)
+	{
+		a0 = _mm256_set1_ps(*(m1p0 + i));
+		a1 = _mm256_set1_ps(*(m1p1 + i));
+		a2 = _mm256_set1_ps(*(m1p2 + i));
+		a3 = _mm256_set1_ps(*(m1p3 + i));
+		a4 = _mm256_set1_ps(*(m1p4 + i));
+		a5 = _mm256_set1_ps(*(m1p5 + i));
+		a6 = _mm256_set1_ps(*(m1p6 + i));
+		a7 = _mm256_set1_ps(*(m1p7 + i));
+		b1 = _mm256_load_ps(&matrix2.matrix[k][j]);
+		c00 = _mm256_add_ps(c00, _mm256_mul_ps(a0, b1));
+		c01 = _mm256_add_ps(c01, _mm256_mul_ps(a1, b1));
+		c02 = _mm256_add_ps(c02, _mm256_mul_ps(a2, b1));
+		c03 = _mm256_add_ps(c03, _mm256_mul_ps(a3, b1));
+		c04 = _mm256_add_ps(c04, _mm256_mul_ps(a4, b1));
+		c05 = _mm256_add_ps(c05, _mm256_mul_ps(a5, b1));
+		c06 = _mm256_add_ps(c06, _mm256_mul_ps(a6, b1));
+		c07 = _mm256_add_ps(c07, _mm256_mul_ps(a7, b1));
+	}
+	_mm256_store_ps(&c.matrix[i][j], c00);
+	_mm256_store_ps(&c.matrix[i+1][j], c01);
+	_mm256_store_ps(&c.matrix[i+2][j], c02);
+	_mm256_store_ps(&c.matrix[i+3][j], c03);
+	_mm256_store_ps(&c.matrix[i+4][j], c04);
+	_mm256_store_ps(&c.matrix[i+5][j], c05);
+	_mm256_store_ps(&c.matrix[i+6][j], c06);
+	_mm256_store_ps(&c.matrix[i+7][j], c07);
 }
 
 Matrix matrixDot2(Matrix matrix1, Matrix matrix2)
@@ -654,7 +681,7 @@ Matrix matrixDot3(Matrix matrix1, Matrix matrix2) {
 	else {
 		int k = matrix1.column_num;
 		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
-		for (int i = 0; i < m - 4; i += 4) {
+		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j++) {
 				Addmatrix1x4(k, matrix1, matrix2, matrix3, i, j);
 			}
@@ -682,8 +709,8 @@ Matrix matrixDot4(Matrix matrix1, Matrix matrix2) {
 		int k = matrix1.column_num;
 		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
 #pragma omp parallel for
-		for (int i = 0; i < m - 4; i += 4) {
-			for (int j = 0; j < n - 4; j += 4) {
+		for (int i = 0; i < m; i += 4) {
+			for (int j = 0; j < n; j += 4) {
 				Addmatrix4x4T(k, matrix1, matrix4, matrix3, i, j);
 			}
 		}
@@ -735,7 +762,7 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 		float *vector2 = new float[k];
 		float *vector3 = new float[k];
 #pragma omp parallel for
-		for (int j = 0; j < n - 4; j += 4) {
+		for (int j = 0; j < n; j += 4) {
 			//将矩阵二进行转置，把要进行操作的四个向量放入连续空间中，并且对要进行计算的部分进行预热
 			for (int p = 0; p < k; p++) {
 				vector0[p] = matrix2.matrix[p][j];
@@ -745,6 +772,33 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 			}
 			for (int i = 0; i < m - 4; i += 4) {
 				multi6kernel2(matrix3, matrix1, vector0, vector1, vector2, vector3, i, j, k);
+			}
+		}
+		cout << endl;
+		return matrix3;
+	}
+}
+
+Matrix matrixDot7(Matrix matrix1, Matrix matrix2) {
+	int m = matrix1.row_num;
+	int n = matrix2.column_num;
+	if (matrix1.column_num != matrix2.row_num) {
+		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
+		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		return matrix3;
+	}
+	else {
+		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		int k = matrix1.column_num;
+		float *vector0 = new float[k];
+		float *vector1 = new float[k];
+		float *vector2 = new float[k];
+		float *vector3 = new float[k];
+#pragma omp parallel for
+		for (int j = 0; j < n; j += 8) {
+			//将矩阵二进行转置，把要进行操作的四个向量放入连续空间中，并且对要进行计算的部分进行预热
+			for (int i = 0; i < m ; i += 8) {
+				multi6kernel3(matrix3, matrix1, matrix2, i, j, k);
 			}
 		}
 		cout << endl;
@@ -772,23 +826,29 @@ int main() {
 					int num1 = getrowNum(str1);
 					int num2 = getrowNum(str2);
 					if (num1 > 1) {
-						num1 = testSameLength(str1);
+						num1 = testSameLength(str1,num1);
 					}
 					if (num2 > 1) {
-						num2 = testSameLength(str2);
+						num2 = testSameLength(str2,num2);
 					}
 					if (num1 > 0 && num2 > 0) {
 						Matrix matrix1 = soToMatrix(str1);
 						Matrix matrix2 = soToMatrix(str2);
 						Matrix matrix3 = matrixDot1(matrix1, matrix2);
+						cout << "Matirx 1 " << endl;
+						showMatrix(matrix1);
+						cout << "Matrix 2 " << endl;
+						showMatrix(matrix2);
+						cout << "Matrix 3 " << endl;
+						showMatrix(matrix3);
 					}
 					else {
-
+						cout << "矩阵每行元素个数不相同" << endl;
+						
 					}
-
 				}
 				else {
-
+					cout << "输入的矩阵格式错误" << endl;
 				}
 			}
 			else if (str0.at(0) == '1') {
@@ -810,7 +870,6 @@ int main() {
 					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 					std::cout << ", duration(基本乘法) = " << duration << std::endl;
 
-
 					start = std::chrono::steady_clock::now();
 					matrix5 = matrixDot2(matrix3, matrix4);
 					end = std::chrono::steady_clock::now();
@@ -830,7 +889,7 @@ int main() {
 					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 					std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
 					std::cout << matrix5.matrix[0][30] << endl;
-					/*
+					
 						start = std::chrono::steady_clock::now();
 						matrix6 = matrixDot4(matrix0, matrix1);
 						end = std::chrono::steady_clock::now();
@@ -865,7 +924,7 @@ int main() {
 					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 					std::cout << ", duration7(openblas库) = " << duration << std::endl;
 					std::cout << matrix02[30] << endl;
-					*/
+					
 					
 				}
 			}
