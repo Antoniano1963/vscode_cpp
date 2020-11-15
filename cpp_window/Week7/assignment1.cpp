@@ -7,18 +7,35 @@
 using namespace std;
 
 struct Matrix {
-	long row_num, column_num;
-	long row_num_true, column_num_true;
-	long step;
+	int row_num, column_num;
+	int row_num_true, column_num_true;
+	int step;
 	float **matrix;
-	/*
+	
 public:
-	~Matrix() {
+	Matrix() {
+		this->row_num = 0;
+		this->row_num_true = 0;
+		this->column_num = 0;
+		this->column_num_true = 0;
+		this->step = 1;
+		this->matrix = NULL;
+	}
+	Matrix(int row_num, int column_num,int row_num_true,int column_num_true,int step, float **matrix) {
+		this->row_num = row_num;
+		this->row_num_true = row_num_true;
+		this->column_num = column_num;
+		this->column_num_true = column_num_true;
+		this->step = 1;
+		this->matrix = matrix;
+	}
+	void deleteMatrix() {
 		for (int i = 0; i < row_num; i++) {
 			delete[] matrix[i];
 		}
+		delete[] matrix;
 	}
-	*/
+	
 };
 
 bool testNum(string str) {
@@ -31,7 +48,7 @@ bool testNum(string str) {
 	}
 	int count = 0;
 	for (; num < str.length(); num++) {
-		if (str.at(num) <= '9' || str.at(num) >= '0' || str.at(num) == '.') {
+		if ((str.at(num) <= '9' && str.at(num) >= '0') || str.at(num) == '.') {
 			if (str.at(num) == '.') {
 				count++;
 			}
@@ -146,7 +163,7 @@ int getrowNum(string str) {
 	return result;
 }
 
-int testSameLength(string str,int rowNum) {
+int testSameLength(string str, int rowNum) {
 	int n = 0;
 	int length = str.length();
 	int lengthNum = 0;
@@ -188,7 +205,7 @@ int testSameLength(string str,int rowNum) {
 
 Matrix soToMatrix(string str) {
 	int rowNum = getrowNum(str);
-	int columnNum = testSameLength(str,rowNum);
+	int columnNum = testSameLength(str, rowNum);
 	float **p = new float *[rowNum];
 	for (int i = 0; i < rowNum; i++) {
 		p[i] = new float[columnNum];
@@ -199,7 +216,7 @@ Matrix soToMatrix(string str) {
 	int length = str.length();
 	while (i < length) {
 		string str0 = "";
-		while (i < length&&str.at(i) != ',' && str.at(i) != ';'&&str.at(i)!=']') {
+		while (i < length&&str.at(i) != ',' && str.at(i) != ';'&&str.at(i) != ']') {
 			str0 += str.at(i);
 			i++;
 		}
@@ -217,7 +234,7 @@ Matrix soToMatrix(string str) {
 			break;
 		}
 	}
-	return Matrix{ rowNum, columnNum, rowNum, columnNum, 1, p };
+	return Matrix( rowNum, columnNum, rowNum, columnNum, 1, p );
 
 }
 
@@ -252,8 +269,8 @@ Matrix creatMatrixwithMod(int row_num, int column_num) {
 			p[i][j] = 0;
 		}
 	}
-	Matrix matrix = { row_num_mod, column_num_mod, row_num, column_num, 1, p };
-	return matrix;
+	return Matrix( row_num_mod, column_num_mod, row_num, column_num, 1, p) ;
+
 }
 
 float **creatMatrixwithNum(int row_num, int column_num, float num) {
@@ -297,15 +314,14 @@ Matrix creatMatrixwithNumwithMod(int row_num, int column_num, float num) {
 			}
 		}
 	}
-	Matrix matrix = { row_num_mod, column_num_mod, row_num, column_num, 1, p };
-	return matrix;
+	return Matrix ( row_num_mod, column_num_mod, row_num, column_num, 1, p );
 }
 
 Matrix matrixDot1(Matrix matrix1, Matrix matrix2) {
 	int m = matrix1.row_num;
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
-		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
+		std::cout << "The column of matrix1 is not equal to the row of matrix 2, the Matrix 3 will be a 0 " << endl;
 		Matrix matrix3 = { 1, 1, 1, 1,1,creatMatrixwithNum(1, 1, 0) };
 		return matrix3;
 	}
@@ -444,7 +460,7 @@ void multi6kernel(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k)
 	float *m2p2 = &(matrix2.matrix[j + 2][0]);
 	float *m2p3 = &(matrix2.matrix[j + 3][0]);
 	int p = 0;
-	for (; p < k ; p += 8)
+	for (; p < k; p += 8)
 	{
 		a0 = _mm256_load_ps(m1p0 + p);
 		a1 = _mm256_load_ps(m1p1 + p);
@@ -532,7 +548,7 @@ void multi6kernel2(Matrix c, Matrix matrix1, float *m2p0, float *m2p1, float *m2
 	float *m1p2 = &(matrix1.matrix[i + 2][0]);
 	float *m1p3 = &(matrix1.matrix[i + 3][0]);
 	int p = 0;
-	for (; p < k ; p += 8)
+	for (; p < k; p += 8)
 	{
 		a0 = _mm256_load_ps(m1p0 + p);
 		a1 = _mm256_load_ps(m1p1 + p);
@@ -594,10 +610,11 @@ void multi6kernel2(Matrix c, Matrix matrix1, float *m2p0, float *m2p1, float *m2
 }
 
 void multi6kernel3(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k) {
-	//使用16个寄存器进行地4*4矩阵乘法运算，matrix是根据行储存的，即同一行数据的地址是连续的.
-	//为了AVX2 8位float寄存器的使用，matrix2经过转置，来使得要被操作的地址是连续的
+	//使用8个寄存器进行地8*48阵乘法运算，matrix是根据行储存的，即同一行数据的地址是连续的.
+	//矩阵是行储存的，所以八个指针跟踪了矩阵1的八个行，矩阵2的八个列由一个寄存器读取获得
+	//最后讲寄存器里的数值放到八个对应的行中
 	float sum[8] = { 0 };
-	__m256 c00, c01, c02, c03, c04, c05, c06, c07, a0, a1, a2, a3, a4,a5, a6, a7,b1;
+	__m256 c00, c01, c02, c03, c04, c05, c06, c07, a0, a1, a2, a3, a4, a5, a6, a7, b1;
 	c00 = _mm256_setzero_ps();
 	c01 = _mm256_setzero_ps();
 	c02 = _mm256_setzero_ps();
@@ -610,12 +627,12 @@ void multi6kernel3(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k
 	float *m1p1 = &(matrix1.matrix[i + 1][0]);
 	float *m1p2 = &(matrix1.matrix[i + 2][0]);
 	float *m1p3 = &(matrix1.matrix[i + 3][0]);
-	float *m1p4 = &(matrix1.matrix[i+4][0]);
+	float *m1p4 = &(matrix1.matrix[i + 4][0]);
 	float *m1p5 = &(matrix1.matrix[i + 5][0]);
 	float *m1p6 = &(matrix1.matrix[i + 6][0]);
 	float *m1p7 = &(matrix1.matrix[i + 7][0]);
 	int p = 0;
-	for (; p < k; p ++)
+	for (; p < k; p++)
 	{
 		a0 = _mm256_set1_ps(*(m1p0 + i));
 		a1 = _mm256_set1_ps(*(m1p1 + i));
@@ -625,7 +642,7 @@ void multi6kernel3(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k
 		a5 = _mm256_set1_ps(*(m1p5 + i));
 		a6 = _mm256_set1_ps(*(m1p6 + i));
 		a7 = _mm256_set1_ps(*(m1p7 + i));
-		b1 = _mm256_load_ps(&matrix2.matrix[k][j]);
+		b1 = _mm256_load_ps(&matrix2.matrix[p][j]);
 		c00 = _mm256_add_ps(c00, _mm256_mul_ps(a0, b1));
 		c01 = _mm256_add_ps(c01, _mm256_mul_ps(a1, b1));
 		c02 = _mm256_add_ps(c02, _mm256_mul_ps(a2, b1));
@@ -636,13 +653,68 @@ void multi6kernel3(Matrix c, Matrix matrix1, Matrix matrix2, int i, int j, int k
 		c07 = _mm256_add_ps(c07, _mm256_mul_ps(a7, b1));
 	}
 	_mm256_store_ps(&c.matrix[i][j], c00);
-	_mm256_store_ps(&c.matrix[i+1][j], c01);
-	_mm256_store_ps(&c.matrix[i+2][j], c02);
-	_mm256_store_ps(&c.matrix[i+3][j], c03);
-	_mm256_store_ps(&c.matrix[i+4][j], c04);
-	_mm256_store_ps(&c.matrix[i+5][j], c05);
-	_mm256_store_ps(&c.matrix[i+6][j], c06);
-	_mm256_store_ps(&c.matrix[i+7][j], c07);
+	_mm256_store_ps(&c.matrix[i + 1][j], c01);
+	_mm256_store_ps(&c.matrix[i + 2][j], c02);
+	_mm256_store_ps(&c.matrix[i + 3][j], c03);
+	_mm256_store_ps(&c.matrix[i + 4][j], c04);
+	_mm256_store_ps(&c.matrix[i + 5][j], c05);
+	_mm256_store_ps(&c.matrix[i + 6][j], c06);
+	_mm256_store_ps(&c.matrix[i + 7][j], c07);
+}
+
+void multi6kernel4(Matrix c, Matrix matrix1, float * vector0, int i, int j, int k) {
+	//使用8个寄存器进行地8*48阵乘法运算，matrix是根据行储存的，即同一行数据的地址是连续的.
+	//矩阵是行储存的，所以八个指针跟踪了矩阵1的八个行，矩阵2的八个列由一个寄存器读取获得
+	//最后讲寄存器里的数值放到八个对应的行中
+	float sum[8] = { 0 };
+	__m256 c00, c01, c02, c03, c04, c05, c06, c07, a0, a1, a2, a3, a4, a5, a6, a7, b1;
+	c00 = _mm256_setzero_ps();
+	c01 = _mm256_setzero_ps();
+	c02 = _mm256_setzero_ps();
+	c03 = _mm256_setzero_ps();
+	c04 = _mm256_setzero_ps();
+	c05 = _mm256_setzero_ps();
+	c06 = _mm256_setzero_ps();
+	c07 = _mm256_setzero_ps();
+	float *m1p0 = &(matrix1.matrix[i][0]);
+	float *m1p1 = &(matrix1.matrix[i + 1][0]);
+	float *m1p2 = &(matrix1.matrix[i + 2][0]);
+	float *m1p3 = &(matrix1.matrix[i + 3][0]);
+	float *m1p4 = &(matrix1.matrix[i + 4][0]);
+	float *m1p5 = &(matrix1.matrix[i + 5][0]);
+	float *m1p6 = &(matrix1.matrix[i + 6][0]);
+	float *m1p7 = &(matrix1.matrix[i + 7][0]);
+	float *m2p0 = vector0;
+	int p = 0;
+	for (; p < k; p++)
+	{
+		a0 = _mm256_set1_ps(*(m1p0 + i));
+		a1 = _mm256_set1_ps(*(m1p1 + i));
+		a2 = _mm256_set1_ps(*(m1p2 + i));
+		a3 = _mm256_set1_ps(*(m1p3 + i));
+		a4 = _mm256_set1_ps(*(m1p4 + i));
+		a5 = _mm256_set1_ps(*(m1p5 + i));
+		a6 = _mm256_set1_ps(*(m1p6 + i));
+		a7 = _mm256_set1_ps(*(m1p7 + i));
+		b1 = _mm256_load_ps(m2p0);;
+		c00 = _mm256_add_ps(c00, _mm256_mul_ps(a0, b1));
+		c01 = _mm256_add_ps(c01, _mm256_mul_ps(a1, b1));
+		c02 = _mm256_add_ps(c02, _mm256_mul_ps(a2, b1));
+		c03 = _mm256_add_ps(c03, _mm256_mul_ps(a3, b1));
+		c04 = _mm256_add_ps(c04, _mm256_mul_ps(a4, b1));
+		c05 = _mm256_add_ps(c05, _mm256_mul_ps(a5, b1));
+		c06 = _mm256_add_ps(c06, _mm256_mul_ps(a6, b1));
+		c07 = _mm256_add_ps(c07, _mm256_mul_ps(a7, b1));
+		m2p0 += 8;
+	}
+	_mm256_store_ps(&c.matrix[i][j], c00);
+	_mm256_store_ps(&c.matrix[i + 1][j], c01);
+	_mm256_store_ps(&c.matrix[i + 2][j], c02);
+	_mm256_store_ps(&c.matrix[i + 3][j], c03);
+	_mm256_store_ps(&c.matrix[i + 4][j], c04);
+	_mm256_store_ps(&c.matrix[i + 5][j], c05);
+	_mm256_store_ps(&c.matrix[i + 6][j], c06);
+	_mm256_store_ps(&c.matrix[i + 7][j], c07);
 }
 
 Matrix matrixDot2(Matrix matrix1, Matrix matrix2)
@@ -652,12 +724,12 @@ Matrix matrixDot2(Matrix matrix1, Matrix matrix2)
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1 ,1,creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3( 1, 1, 1,1 ,1,creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
 		int k = matrix1.column_num;
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 		for (int j = 0; j < n; j++) {
 			for (int i = 0; i < m; i++) {
 				for (int p = 0; p < k; p++) {
@@ -675,12 +747,12 @@ Matrix matrixDot3(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
 		int k = matrix1.column_num;
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j++) {
 				Addmatrix1x4(k, matrix1, matrix2, matrix3, i, j);
@@ -696,18 +768,18 @@ Matrix matrixDot4(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix4 = { matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) };
+		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
 		for (int i = 0; i < matrix2.row_num; i++) {
 			for (int j = 0; j < matrix2.column_num; j++) {
 				matrix4.matrix[j][i] = matrix2.matrix[i][j];
 			}
 		}
 		int k = matrix1.column_num;
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 #pragma omp parallel for
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j += 4) {
@@ -724,18 +796,18 @@ Matrix matrixDot5(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix4 = { matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) };
+		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
 		for (int i = 0; i < matrix2.row_num; i++) {
 			for (int j = 0; j < matrix2.column_num; j++) {
 				matrix4.matrix[j][i] = matrix2.matrix[i][j];
 			}
 		}
 		int k = matrix1.column_num;
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 #pragma omp parallel for
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j += 4) {
@@ -751,11 +823,11 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 		int k = matrix1.column_num;
 		float *vector0 = new float[k];
 		float *vector1 = new float[k];
@@ -780,34 +852,66 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 }
 
 Matrix matrixDot7(Matrix matrix1, Matrix matrix2) {
+	//使用了另一种思路进行，将矩阵分为8*8的小块进行计算，与前两种方法相比减少了申请寄存器的数量，来试图增大效率
 	int m = matrix1.row_num;
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 = { 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix3 = { m, n, m,n,1, creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
 		int k = matrix1.column_num;
-		float *vector0 = new float[k];
-		float *vector1 = new float[k];
-		float *vector2 = new float[k];
-		float *vector3 = new float[k];
-#pragma omp parallel for
+#pragma omp parallel for num_threads(6)
 		for (int j = 0; j < n; j += 8) {
-			//将矩阵二进行转置，把要进行操作的四个向量放入连续空间中，并且对要进行计算的部分进行预热
-			for (int i = 0; i < m ; i += 8) {
+			for (int i = 0; i < m; i += 8) {
 				multi6kernel3(matrix3, matrix1, matrix2, i, j, k);
 			}
+
 		}
 		cout << endl;
 		return matrix3;
 	}
 }
 
+void matrixDot8(Matrix matrix1, Matrix matrix2,Matrix matrix31 ) {
+	//使用了另一种思路进行，将矩阵分为8*8的小块进行计算，与前两种方法相比减少了申请寄存器的数量，来试图增大效率
+	int m = matrix1.row_num;
+	int n = matrix2.column_num;
+	if (matrix1.column_num != matrix2.row_num) {
+		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
+		Matrix matrix3(1, 1, 1, 1, 1, creatMatrixwithNum(1, 1, 0));
+	}
+	else {
+		int k = matrix1.column_num;
+#pragma omp parallel  for num_threads(12) 
+		for (int j = 0; j < n; j += 8) {
+			float *vector4 = new float[8 * k];
+			for (int p = 0; p < k; p++) {
+				vector4[8 * p ] = matrix2.matrix[p][j];
+				vector4[8 * p + 1] = matrix2.matrix[p][j + 1];
+				vector4[8 * p + 2] = matrix2.matrix[p][j + 2];
+				vector4[8 * p + 3] = matrix2.matrix[p][j + 3];
+				vector4[8 * p + 4] = matrix2.matrix[p][j + 4];
+				vector4[8 * p + 5] = matrix2.matrix[p][j + 5];
+				vector4[8 * p + 6] = matrix2.matrix[p][j + 6];
+				vector4[8 * p + 7] = matrix2.matrix[p][j + 7];
+
+			}
+			for (int i = 0; i < m; i += 8) {
+				multi6kernel4(matrix31, matrix1, vector4, i, j, k);
+			}
+			delete[] vector4;
+
+		}
+		cout << "finish" << endl;
+	}
+}
+
 int main() {
-	while (true) {
+	bool T = true;
+	while (T) {
 		cout << "input 0 to test the normal matrix Dot, input 1 to test the time cost of two big matrix Dot: ";
 		string str0;
 		cin >> str0;
@@ -826,10 +930,10 @@ int main() {
 					int num1 = getrowNum(str1);
 					int num2 = getrowNum(str2);
 					if (num1 > 1) {
-						num1 = testSameLength(str1,num1);
+						num1 = testSameLength(str1, num1);
 					}
 					if (num2 > 1) {
-						num2 = testSameLength(str2,num2);
+						num2 = testSameLength(str2, num2);
 					}
 					if (num1 > 0 && num2 > 0) {
 						Matrix matrix1 = soToMatrix(str1);
@@ -844,7 +948,7 @@ int main() {
 					}
 					else {
 						cout << "矩阵每行元素个数不相同" << endl;
-						
+
 					}
 				}
 				else {
@@ -852,81 +956,133 @@ int main() {
 				}
 			}
 			else if (str0.at(0) == '1') {
-				cout << "Enter a number to size your matrix(int)";
+				cout << "Enter a number to size your matrix(int)(如果你输入浮点数则会自动转化为int形式）";
 				string num;
 				cin >> num;
 				if (testNum(num)) {
 					int n = stoi(num);
-					cout << "The number n is " << n << endl;
-					Matrix matrix0 = { 10000, 10000, 10000,10000,1, creatMatrixwithNum(10000, 10000, 1) };
-					Matrix matrix1 = { 10000, 10000, 10000,10000,2, creatMatrixwithNum(10000, 10000, 2) };
+					if (n <= 0) {
+						cout << "The num should larger than 0 " << endl;
+					}
+					else {
+						cout << "The number n is " << n << endl;
+						float **deletePoint;
+						Matrix matrix3, matrix4, matrix5, matrix6;
+						matrix3 = creatMatrixwithNumwithMod(n, n, 1);
+						matrix4 = creatMatrixwithNumwithMod(n, n, 2);
+						auto start = std::chrono::steady_clock::now();
+						matrix5 = matrixDot1(matrix3, matrix4);
+						auto end = std::chrono::steady_clock::now();
+						auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						std::cout << ", duration(基本乘法) = " << duration << std::endl;
+						matrix5.deleteMatrix();
 
-					Matrix matrix3, matrix4, matrix5, matrix6;
-					matrix3 = creatMatrixwithNumwithMod(n, n, 1);
-					matrix4 = creatMatrixwithNumwithMod(n, n, 2);
-					auto start = std::chrono::steady_clock::now();
-					matrix5 = matrixDot1(matrix3, matrix4);
-					auto end = std::chrono::steady_clock::now();
-					auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration(基本乘法) = " << duration << std::endl;
+						start = std::chrono::steady_clock::now();
+						matrix5 = matrixDot2(matrix3, matrix4);
+						end = std::chrono::steady_clock::now();
+						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						std::cout << ", duration2(i j顺序调换) = " << duration << std::endl;
+						matrix5.deleteMatrix();
 
-					start = std::chrono::steady_clock::now();
-					matrix5 = matrixDot2(matrix3, matrix4);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration2(i j顺序调换) = " << duration << std::endl;
+						start = std::chrono::steady_clock::now();
+						matrix5 = matrixDot3(matrix3, matrix4);
+						end = std::chrono::steady_clock::now();
+						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						std::cout << ", duration3(1*4寄存器) = " << duration;
+						std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
+						matrix5.deleteMatrix();
 
-					start = std::chrono::steady_clock::now();
-					matrix5 = matrixDot3(matrix3, matrix4);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration3(1*4寄存器) = " << duration;
-					std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
-
-					start = std::chrono::steady_clock::now();
-					matrix5 = matrixDot4(matrix3, matrix4);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
-					std::cout << matrix5.matrix[0][30] << endl;
-					
+						start = std::chrono::steady_clock::now();
+						matrix5 = matrixDot4(matrix3, matrix4);
+						end = std::chrono::steady_clock::now();
+						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+						std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
+						std::cout << matrix5.matrix[0][30] << endl;
+						matrix5.deleteMatrix();
+						/*
 						start = std::chrono::steady_clock::now();
 						matrix6 = matrixDot4(matrix0, matrix1);
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 						std::cout << ", duration5(4*4寄存器) = " << duration << std::endl;
-						std::cout << matrix6.matrix[0][30]<<endl;
-					
-					start = std::chrono::steady_clock::now();
-					matrix6 = matrixDot5(matrix0, matrix1);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration6(AVX2寄存器) = " << duration << std::endl;
-					std::cout << matrix6.matrix[0][30] << endl;
+						std::cout << matrix6.matrix[0][30] << endl;
+						*/
+						cout << "如果你想测试10000*10000矩阵运算，输入0，运算结束后程序将终止" << endl;
+						string str2;
+						cin >> str2;
+						if (str2.length() == 1) {
+							if (str2.at(0) == '0') {
+								Matrix matrix0(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 1.1));
+								Matrix matrix1(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 2.2));
+								Matrix matrix7 = Matrix(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 0));
+								start = std::chrono::steady_clock::now();
+								matrix6 = matrixDot5(matrix0, matrix1);
+								end = std::chrono::steady_clock::now();
+								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+								std::cout << ", duration6(AVX2寄存器) = " << duration << std::endl;
+								std::cout << matrix6.matrix[0][30] << endl;
+								std::cout << matrix6.matrix[0][60] << endl;
+								matrix6.deleteMatrix();
 
-					start = std::chrono::steady_clock::now();
-					matrix6 = matrixDot6(matrix0, matrix1);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration7(AVX2寄存器预热) = " << duration << std::endl;
-					std::cout << matrix6.matrix[0][30] << endl;
-					float *matrix00 = new float[100000000];
-					float *matrix01 = new float[100000000];
-					float *matrix02 = new float[100000000];
-					for (int i = 0; i < 100000000; i++) {
-						matrix00[i] = 1;
-						matrix01[i] = 2;
+								start = std::chrono::steady_clock::now();
+								matrix6 = matrixDot7(matrix0, matrix1);
+								end = std::chrono::steady_clock::now();
+								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+								std::cout << ", duration7(改变方法) = " << duration << std::endl;
+								std::cout << matrix6.matrix[0][30] << endl;
+								matrix6.deleteMatrix();
+
+								start = std::chrono::steady_clock::now();
+								matrixDot8(matrix0, matrix1, matrix7);
+								end = std::chrono::steady_clock::now();
+								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+								std::cout << ", duration8(改变方法2预热) = " << duration << std::endl;
+								std::cout << matrix7.matrix[0][30] << endl;
+								std::cout << matrix7.matrix[0][0] << endl;
+								std::cout << matrix7.matrix[0][60] << endl;
+								matrix7.deleteMatrix();
+
+
+								float *matrix00 = new float[100000000];
+								float *matrix01 = new float[100000000];
+								float *matrix02 = new float[100000000];
+								for (int i = 0; i < 100000000; i++) {
+									matrix00[i] = 1.1;
+									matrix01[i] = 2.2;
+								}
+
+								start = std::chrono::steady_clock::now();
+								cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 10000, 10000, 10000, 1.0, matrix00, 10000, matrix01, 10000, 0.0, matrix02, 10000);
+								end = std::chrono::steady_clock::now();
+								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+								std::cout << ", duration7(openblas库) = " << duration << std::endl;
+								std::cout << matrix02[30] << endl;
+
+								matrix0.deleteMatrix();
+								matrix1.deleteMatrix();
+								matrix3.deleteMatrix();
+								matrix4.deleteMatrix();
+
+								delete[] matrix00;
+								delete[] matrix01;
+								delete[] matrix02;
+								T = false;
+							}
+						}
+						matrix3.deleteMatrix();
+						matrix4.deleteMatrix();
+
+
+
 					}
-					
-					start = std::chrono::steady_clock::now();
-					cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 10000, 10000, 10000, 1.0, matrix00, 10000, matrix01, 10000, 0.0, matrix02, 10000);
-					end = std::chrono::steady_clock::now();
-					duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-					std::cout << ", duration7(openblas库) = " << duration << std::endl;
-					std::cout << matrix02[30] << endl;
-					
-					
 				}
+				else {
+					cout << "The num is wrong." << endl;
+				}
+			}
+			else if (str0.at(0) == '2') {
+				T = false;
+				cout << "The program will stop" << endl;
 			}
 			else {
 				cout << "You input a wrong number" << endl;
@@ -936,3 +1092,4 @@ int main() {
 	}
 }
 
+//finish1
