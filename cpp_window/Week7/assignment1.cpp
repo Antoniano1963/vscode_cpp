@@ -877,6 +877,7 @@ Matrix matrixDot7(Matrix matrix1, Matrix matrix2) {
 
 void matrixDot8(Matrix matrix1, Matrix matrix2,Matrix matrix31 ) {
 	//使用了另一种思路进行，将矩阵分为8*8的小块进行计算，与前两种方法相比减少了申请寄存器的数量，来试图增大效率
+	//讲列行提前预热，减少了读取的开销，达到了不错的效果
 	int m = matrix1.row_num;
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
@@ -905,7 +906,6 @@ void matrixDot8(Matrix matrix1, Matrix matrix2,Matrix matrix31 ) {
 			delete[] vector4;
 
 		}
-		cout << "finish" << endl;
 	}
 }
 
@@ -974,21 +974,21 @@ int main() {
 						matrix5 = matrixDot1(matrix3, matrix4);
 						auto end = std::chrono::steady_clock::now();
 						auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-						std::cout << ", duration(基本乘法) = " << duration << std::endl;
+						std::cout << " duration(基本乘法) = " << duration << std::endl;
 						matrix5.deleteMatrix();
 
 						start = std::chrono::steady_clock::now();
 						matrix5 = matrixDot2(matrix3, matrix4);
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-						std::cout << ", duration2(i j顺序调换) = " << duration << std::endl;
+						std::cout << "duration2(i j顺序调换) = " << duration << std::endl;
 						matrix5.deleteMatrix();
 
 						start = std::chrono::steady_clock::now();
 						matrix5 = matrixDot3(matrix3, matrix4);
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-						std::cout << ", duration3(1*4寄存器) = " << duration;
+						std::cout << "duration3(1*4寄存器) = " << duration;
 						std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
 						matrix5.deleteMatrix();
 
@@ -996,17 +996,10 @@ int main() {
 						matrix5 = matrixDot4(matrix3, matrix4);
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-						std::cout << ", duration4(4*4寄存器) = " << duration << std::endl;
+						std::cout << "duration4(4*4寄存器) = " << duration << std::endl;
 						std::cout << matrix5.matrix[0][30] << endl;
 						matrix5.deleteMatrix();
-						/*
-						start = std::chrono::steady_clock::now();
-						matrix6 = matrixDot4(matrix0, matrix1);
-						end = std::chrono::steady_clock::now();
-						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-						std::cout << ", duration5(4*4寄存器) = " << duration << std::endl;
-						std::cout << matrix6.matrix[0][30] << endl;
-						*/
+						
 						cout << "如果你想测试10000*10000矩阵运算，输入0，运算结束后程序将终止" << endl;
 						string str2;
 						cin >> str2;
@@ -1015,32 +1008,42 @@ int main() {
 								Matrix matrix0(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 1.1));
 								Matrix matrix1(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 2.2));
 								Matrix matrix7 = Matrix(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 0));
+
 								start = std::chrono::steady_clock::now();
 								matrix6 = matrixDot5(matrix0, matrix1);
 								end = std::chrono::steady_clock::now();
 								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-								std::cout << ", duration6(AVX2寄存器) = " << duration << std::endl;
-								std::cout << matrix6.matrix[0][30] << endl;
-								std::cout << matrix6.matrix[0][60] << endl;
+								std::cout << "duration6(AVX2寄存器) = " << duration << std::endl;
+								std::cout << "matrix6.matrix[0][30]" << matrix6.matrix[0][30] << endl;
+								matrix6.deleteMatrix();
+
+								start = std::chrono::steady_clock::now();
+								matrix6 = matrixDot6(matrix0, matrix1);
+								end = std::chrono::steady_clock::now();
+								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+								std::cout << "duration6(AVX2寄存器预热) = " << duration << std::endl;
+								std::cout << "matrix6.matrix[0][30]" << matrix6.matrix[0][30] << endl;
 								matrix6.deleteMatrix();
 
 								start = std::chrono::steady_clock::now();
 								matrix6 = matrixDot7(matrix0, matrix1);
 								end = std::chrono::steady_clock::now();
 								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-								std::cout << ", duration7(改变方法) = " << duration << std::endl;
-								std::cout << matrix6.matrix[0][30] << endl;
+								std::cout << "duration7(改变方法) = " << duration << std::endl;
+								std::cout <<"matrix6.matrix[0][30]" <<matrix6.matrix[0][30] << endl;
 								matrix6.deleteMatrix();
+								cout << endl;
 
 								start = std::chrono::steady_clock::now();
 								matrixDot8(matrix0, matrix1, matrix7);
 								end = std::chrono::steady_clock::now();
 								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-								std::cout << ", duration8(改变方法2预热) = " << duration << std::endl;
-								std::cout << matrix7.matrix[0][30] << endl;
-								std::cout << matrix7.matrix[0][0] << endl;
-								std::cout << matrix7.matrix[0][60] << endl;
+								std::cout << "duration8(改变方法2预热) = " << duration << std::endl;
+								std::cout <<" matrix7.matrix[0][30]:" <<matrix7.matrix[0][30] << endl;
+								std::cout <<"matrix7.matrix[0][0]" <<matrix7.matrix[0][0] << endl;
+								std::cout << "matrix7.matrix[9999][9999]" <<matrix7.matrix[9999][9999] << endl;
 								matrix7.deleteMatrix();
+								cout << endl;
 
 
 								float *matrix00 = new float[100000000];
@@ -1055,13 +1058,11 @@ int main() {
 								cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 10000, 10000, 10000, 1.0, matrix00, 10000, matrix01, 10000, 0.0, matrix02, 10000);
 								end = std::chrono::steady_clock::now();
 								duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-								std::cout << ", duration7(openblas库) = " << duration << std::endl;
-								std::cout << matrix02[30] << endl;
+								std::cout << "duration9(openblas库) = " << duration << std::endl;
+								std::cout <<"matrix[0][30]" <<matrix02[30] << endl;
 
 								matrix0.deleteMatrix();
 								matrix1.deleteMatrix();
-								matrix3.deleteMatrix();
-								matrix4.deleteMatrix();
 
 								delete[] matrix00;
 								delete[] matrix01;
@@ -1092,4 +1093,4 @@ int main() {
 	}
 }
 
-//finish1
+//finsih2
