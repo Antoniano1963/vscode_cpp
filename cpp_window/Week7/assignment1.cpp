@@ -9,7 +9,6 @@ using namespace std;
 struct Matrix {
 	int row_num, column_num;
 	int row_num_true, column_num_true;
-	int step;
 	float **matrix;
 	
 public:
@@ -18,15 +17,13 @@ public:
 		this->row_num_true = 0;
 		this->column_num = 0;
 		this->column_num_true = 0;
-		this->step = 1;
 		this->matrix = NULL;
 	}
-	Matrix(int row_num, int column_num,int row_num_true,int column_num_true,int step, float **matrix) {
+	Matrix(int row_num, int column_num,int row_num_true,int column_num_true, float **matrix) {
 		this->row_num = row_num;
 		this->row_num_true = row_num_true;
 		this->column_num = column_num;
 		this->column_num_true = column_num_true;
-		this->step = 1;
 		this->matrix = matrix;
 	}
 	void deleteMatrix() {
@@ -71,6 +68,10 @@ bool testMatrix(string str) {
 		cout << "The expression should begin with [" << endl;
 		return false;
 	}
+	if (str.at(length - 1) != ']') {
+		cout << "The expression should end with ]" << endl;
+		return false;
+	}
 	while (i < length) {
 		if (test == 0) {
 			i++;
@@ -99,10 +100,10 @@ bool testMatrix(string str) {
 				test = 3;
 			}
 			else if (str.at(i) == ']') {
-				if (i = length - 1) {
+				if (i == length - 1) {
 					return true;
 				}
-				cout << "The expression should end with ]" << endl;
+				cout << "中括号不应该在中间出现" << endl;
 				return false;
 			}
 			else {
@@ -234,7 +235,7 @@ Matrix soToMatrix(string str) {
 			break;
 		}
 	}
-	return Matrix( rowNum, columnNum, rowNum, columnNum, 1, p );
+	return Matrix( rowNum, columnNum, rowNum, columnNum, p );
 
 }
 
@@ -269,7 +270,7 @@ Matrix creatMatrixwithMod(int row_num, int column_num) {
 			p[i][j] = 0;
 		}
 	}
-	return Matrix( row_num_mod, column_num_mod, row_num, column_num, 1, p) ;
+	return Matrix( row_num_mod, column_num_mod, row_num, column_num, p) ;
 
 }
 
@@ -314,7 +315,7 @@ Matrix creatMatrixwithNumwithMod(int row_num, int column_num, float num) {
 			}
 		}
 	}
-	return Matrix ( row_num_mod, column_num_mod, row_num, column_num, 1, p );
+	return Matrix ( row_num_mod, column_num_mod, row_num, column_num, p );
 }
 
 Matrix matrixDot1(Matrix matrix1, Matrix matrix2) {
@@ -322,12 +323,12 @@ Matrix matrixDot1(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2, the Matrix 3 will be a 0 " << endl;
-		Matrix matrix3 = { 1, 1, 1, 1,1,creatMatrixwithNum(1, 1, 0) };
+		Matrix matrix3 = { 1, 1, 1, 1,creatMatrixwithNum(1, 1, 0) };
 		return matrix3;
 	}
 	else {
 		int k = matrix1.column_num;
-		Matrix matrix3 = { m, n,m ,n,1,creatMatrixwithNum(m, n, 0) };
+		Matrix matrix3 ( m, n,m ,n,creatMatrixwithNum(m, n, 0) );
 		for (int i = 0; i < m; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int p = 0; p < k; p++) {
@@ -724,12 +725,12 @@ Matrix matrixDot2(Matrix matrix1, Matrix matrix2)
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3( 1, 1, 1,1 ,1,creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3( 1, 1, 1,1,creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
 		int k = matrix1.column_num;
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 		for (int j = 0; j < n; j++) {
 			for (int i = 0; i < m; i++) {
 				for (int p = 0; p < k; p++) {
@@ -747,12 +748,12 @@ Matrix matrixDot3(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3( 1, 1, 1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
 		int k = matrix1.column_num;
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j++) {
 				Addmatrix1x4(k, matrix1, matrix2, matrix3, i, j);
@@ -768,18 +769,18 @@ Matrix matrixDot4(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3 ( 1, 1, 1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
+		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
 		for (int i = 0; i < matrix2.row_num; i++) {
 			for (int j = 0; j < matrix2.column_num; j++) {
 				matrix4.matrix[j][i] = matrix2.matrix[i][j];
 			}
 		}
 		int k = matrix1.column_num;
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 #pragma omp parallel for
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j += 4) {
@@ -796,18 +797,18 @@ Matrix matrixDot5(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3 ( 1, 1, 1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num,1, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
+		Matrix matrix4 ( matrix2.column_num, matrix2.row_num, matrix2.column_num,matrix2.row_num, creatMatrixwithNum(matrix2.column_num, matrix2.row_num, 0) );
 		for (int i = 0; i < matrix2.row_num; i++) {
 			for (int j = 0; j < matrix2.column_num; j++) {
 				matrix4.matrix[j][i] = matrix2.matrix[i][j];
 			}
 		}
 		int k = matrix1.column_num;
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 #pragma omp parallel for
 		for (int i = 0; i < m; i += 4) {
 			for (int j = 0; j < n; j += 4) {
@@ -823,11 +824,11 @@ Matrix matrixDot6(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3 ( 1, 1, 1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 		int k = matrix1.column_num;
 		float *vector0 = new float[k];
 		float *vector1 = new float[k];
@@ -857,11 +858,11 @@ Matrix matrixDot7(Matrix matrix1, Matrix matrix2) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3 ( 1, 1, 1,1,1, creatMatrixwithNum(1, 1, 0) );
+		Matrix matrix3 ( 1, 1, 1,1, creatMatrixwithNum(1, 1, 0) );
 		return matrix3;
 	}
 	else {
-		Matrix matrix3 ( m, n, m,n,1, creatMatrixwithNum(m, n, 0) );
+		Matrix matrix3 ( m, n, m,n, creatMatrixwithNum(m, n, 0) );
 		int k = matrix1.column_num;
 #pragma omp parallel for num_threads(6)
 		for (int j = 0; j < n; j += 8) {
@@ -882,7 +883,7 @@ void matrixDot8(Matrix matrix1, Matrix matrix2,Matrix matrix31 ) {
 	int n = matrix2.column_num;
 	if (matrix1.column_num != matrix2.row_num) {
 		std::cout << "The column of matrix1 is not equal to the row of matrix 2" << endl;
-		Matrix matrix3(1, 1, 1, 1, 1, creatMatrixwithNum(1, 1, 0));
+		Matrix matrix3(1, 1, 1, 1, creatMatrixwithNum(1, 1, 0));
 	}
 	else {
 		int k = matrix1.column_num;
@@ -975,6 +976,7 @@ int main() {
 						auto end = std::chrono::steady_clock::now();
 						auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 						std::cout << " duration(基本乘法) = " << duration << std::endl;
+						std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
 						matrix5.deleteMatrix();
 
 						start = std::chrono::steady_clock::now();
@@ -982,6 +984,7 @@ int main() {
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 						std::cout << "duration2(i j顺序调换) = " << duration << std::endl;
+						std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
 						matrix5.deleteMatrix();
 
 						start = std::chrono::steady_clock::now();
@@ -997,7 +1000,7 @@ int main() {
 						end = std::chrono::steady_clock::now();
 						duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 						std::cout << "duration4(4*4寄存器) = " << duration << std::endl;
-						std::cout << matrix5.matrix[0][30] << endl;
+						std::cout << "  matrix5[0][0] " << matrix5.matrix[0][0] << endl;
 						matrix5.deleteMatrix();
 						
 						cout << "如果你想测试10000*10000矩阵运算，输入0，运算结束后程序将终止" << endl;
@@ -1005,9 +1008,9 @@ int main() {
 						cin >> str2;
 						if (str2.length() == 1) {
 							if (str2.at(0) == '0') {
-								Matrix matrix0(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 1.1));
-								Matrix matrix1(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 2.2));
-								Matrix matrix7 = Matrix(10000, 10000, 10000, 10000, 1, creatMatrixwithNum(10000, 10000, 0));
+								Matrix matrix0(10000, 10000, 10000, 10000, creatMatrixwithNum(10000, 10000, 1.1));
+								Matrix matrix1(10000, 10000, 10000, 10000, creatMatrixwithNum(10000, 10000, 2.2));
+								Matrix matrix7 = Matrix(10000, 10000, 10000, 10000, creatMatrixwithNum(10000, 10000, 0));
 
 								start = std::chrono::steady_clock::now();
 								matrix6 = matrixDot5(matrix0, matrix1);
@@ -1093,4 +1096,4 @@ int main() {
 	}
 }
 
-//finsih2
+//finial 3
