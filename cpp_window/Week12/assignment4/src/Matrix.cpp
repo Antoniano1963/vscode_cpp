@@ -69,7 +69,7 @@ bool testMatrix(string str) {
 				if (i == length - 1) {
 					return true;
 				}
-				cout << "ÖÐÀ¨ºÅ²»Ó¦¸ÃÔÚÖÐ¼ä³öÏÖ" << endl;
+				cout << "ä¸­æ‹¬å·ä¸åº”è¯¥åœ¨ä¸­é—´å‡ºçŽ°" << endl;
 				return false;
 			}
 			else {
@@ -185,6 +185,7 @@ Matrix::Matrix(float value, int row_num, int column_num) {
 	}
 }
 Matrix::Matrix(string str) {
+
 	int rowNum = getrowNum(str);
 	int columnNum = testSameLength(str, rowNum);
 	this->size = rowNum * columnNum;
@@ -308,7 +309,7 @@ Matrix operator+(const Matrix& matrix1, const Matrix &matrix2) {
 		}
 		return matrix3;
 	}
-	cout << "Á½¸ö¾ØÕó´óÐ¡²»Í¬£¬·½·¨»á·µ»ØÒ»¸ö´óÐ¡ÊÇ1µÄ·½Õó" << endl;
+	cout << "ä¸¤ä¸ªçŸ©é˜µå¤§å°ä¸åŒï¼Œæ–¹æ³•ä¼šè¿”å›žä¸€ä¸ªå¤§å°æ˜¯1çš„æ–¹é˜µ" << endl;
 	return Matrix(1,1);
 }
 Matrix operator-(const Matrix &matrix1, const Matrix &matrix2) {
@@ -321,7 +322,7 @@ Matrix operator-(const Matrix &matrix1, const Matrix &matrix2) {
 		}
 		return matrix3;
 	}
-	cout << "Á½¸ö¾ØÕó´óÐ¡²»Í¬£¬·½·¨»á·µ»ØÒ»¸ö´óÐ¡ÊÇ1µÄ·½Õó" << endl;
+	cout << "ä¸¤ä¸ªçŸ©é˜µå¤§å°ä¸åŒï¼Œæ–¹æ³•ä¼šè¿”å›žä¸€ä¸ªå¤§å°æ˜¯1çš„æ–¹é˜µ" << endl;
 	return Matrix(1, 1);
 }
 Matrix  operator*(const Matrix &matrix1, const Matrix &matrix2) {
@@ -338,7 +339,7 @@ Matrix  operator*(const Matrix &matrix1, const Matrix &matrix2) {
 		cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, M, N, K, 1, matrix1.matrixdata, ida, matrix2.matrixdata, idb, 0.0, matrix3.matrixdata, idc);
 		return matrix3;
 	}
-	cout << "Á½¸ö¾ØÕó´óÐ¡²»Í¬£¬·½·¨»á·µ»ØÒ»¸ö´óÐ¡ÊÇ1µÄ·½Õó" << endl;
+	cout << "ä¸¤ä¸ªçŸ©é˜µå¤§å°ä¸åŒï¼Œæ–¹æ³•ä¼šè¿”å›žä¸€ä¸ªå¤§å°æ˜¯1çš„æ–¹é˜µ" << endl;
 	Matrix matrix3 = Matrix(1, 1);
 	return matrix3;
 }
@@ -409,14 +410,33 @@ Matrix creatMatWithString() {
 			return matrix;
 		}
 		else {
-			cout << "¾ØÕóÃ¿ÐÐÔªËØ¸öÊý²»ÏàÍ¬£¨·µ»ØÒ»¸ö1*1¾ØÕó£©" << endl;
+			cout << "çŸ©é˜µæ¯è¡Œå…ƒç´ ä¸ªæ•°ä¸ç›¸åŒï¼ˆè¿”å›žä¸€ä¸ª1*1çŸ©é˜µï¼‰" << endl;
 		}
 	}
 	else {
-		cout << "ÊäÈëµÄ¾ØÕó¸ñÊ½´íÎó£¨·µ»ØÒ»¸ö1*1¾ØÕó£©" << endl;
+		cout << "è¾“å…¥çš„çŸ©é˜µæ ¼å¼é”™è¯¯ï¼ˆè¿”å›žä¸€ä¸ª1*1çŸ©é˜µï¼‰" << endl;
 	}
 	return Matrix(0, 1, 1);
 
+}
+Matrix creatMatWithString(string str) {
+	if (testMatrix(str)) {
+		int num1 = getrowNum(str);
+		if (num1 > 1) {
+			num1 = testSameLength(str, num1);
+		}
+		if (num1 > 0) {
+			Matrix matrix = Matrix(str);
+			return matrix;
+		}
+		else {
+			cout << "çŸ©é˜µæ¯è¡Œå…ƒç´ ä¸ªæ•°ä¸ç›¸åŒï¼ˆè¿”å›žä¸€ä¸ª1*1çŸ©é˜µï¼‰" << endl;
+		}
+	}
+	else {
+		cout << "è¾“å…¥çš„çŸ©é˜µæ ¼å¼é”™è¯¯ï¼ˆè¿”å›žä¸€ä¸ª1*1çŸ©é˜µï¼‰" << endl;
+	}
+	return Matrix(0, 1, 1);
 }
 Matrix Matrix::getSubMatrix(int rowStart, int rowEnd, int columnStart, int columnEnd) {
 	if (rowStart <= 0 || columnStart <= 0) {

@@ -55,5 +55,10 @@ int main()
 	cout << "matrix9=matrix1[3-5][3-5](展示超限了会怎么样)" << endl;
 	Matrix matrix9 = matrix1.getSubMatrix(3, 5, 3, 5);
 	cout << matrix9 << endl;
+
+	cout << "用内置字符串初始矩阵（[1,2;3,4]）" << endl;
+	string str3 = "[1,2;3,4]";
+	Matrix matrix10 = creatMatWithString(str3);
+	cout << matrix10 << endl;
 	
 }

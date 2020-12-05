@@ -34,3 +34,4 @@ public:
 	Matrix getSubMatrix(int rowStart, int rowEnd, int columnStart, int columnEnd);
 };
 Matrix creatMatWithString();
+Matrix creatMatWithString(string str);
