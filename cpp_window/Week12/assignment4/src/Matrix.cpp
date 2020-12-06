@@ -358,6 +358,10 @@ Matrix operator*(const Matrix &matrix1, float mul) {
 	return matrix3;
 }
 Matrix operator/(float mul, const Matrix &matrix2) {
+	if(mul==0){
+		cout<<"除数不能是0"<<endl;
+		return matrix2;
+	}
 	Matrix matrix3 = Matrix(matrix2.row_num, matrix2.column_num);
 	for (int i = 0; i < matrix2.size; i++) {
 		matrix3.matrixdata[i] = mul / matrix2.matrixdata[i];
@@ -365,6 +369,10 @@ Matrix operator/(float mul, const Matrix &matrix2) {
 	return matrix3;
 }
 Matrix operator/(const Matrix &matrix1, float mul) {
+	if(mul==0){
+		cout<<"除数不能是0"<<endl;
+		return matrix1;
+	}
 	Matrix matrix3 = Matrix(matrix1.row_num, matrix1.column_num);
 	for (int i = 0; i < matrix1.size; i++) {
 		matrix3.matrixdata[i] = matrix1.matrixdata[i] / mul;
